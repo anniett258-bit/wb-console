@@ -1,26 +1,242 @@
 @import "tailwindcss";
 
 :root {
+  /* 橙色主色 #FFA153 */
+  --primary: #ffa153;
+  --primary-light: #fff4ea;
+  --primary-lighter: #ffe8d4;
+  --primary-dark: #e5832b;
+  --primary-soft: #ffe8d4;
+  --foreground: #262626;        /* 主要文字 #262626（统一规范） */
   --background: #ffffff;
-  --foreground: #171717;
+  --border: #f3f4f6;
+  --muted: #999999;             /* 辅助文字 #999999（统一规范） */
+  --accent: #ffa153;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+* { box-sizing: border-box; }
+html, body { color: var(--foreground); background: var(--background); }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* === 通用卡片 === */
+.wb-card {
+  background: #fff;
+  border: 1px solid var(--primary-lighter);
+  border-radius: 10px;
+  padding: 20px;
+}
+.wb-card-tight {
+  background: #fff;
+  border: 1px solid var(--primary-lighter);
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+
+/* === 按钮 === */
+.wb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 150ms;
+  background: #fff;
+  color: var(--foreground);
+  border-color: #e5e7eb;
+}
+.wb-btn:hover { border-color: var(--primary); color: var(--primary); }
+.wb-btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.wb-btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); color: #fff; }
+.wb-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+.wb-btn-ghost:hover { color: var(--primary); background: var(--primary-light); }
+
+/* === 表格 === */
+.wb-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+.wb-table th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 10px 12px;
+  background: #fafafa;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.wb-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f7f7f7;
+  color: #262626;
+  vertical-align: top;
+}
+.wb-table tr:last-child td { border-bottom: none; }
+.wb-table tr:hover td { background: #fafaf9; }
+
+/* === 标签 === */
+.wb-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  font-size: 12px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+.wb-tag-yes { color: #059669; background: #ecfdf5; }
+.wb-tag-no  { color: var(--muted); }
+.wb-tag-primary { color: var(--primary); background: var(--primary-light); }
+
+/* === 标题 === */
+.wb-h1 { font-size: 22px; font-weight: 600; color: var(--foreground); margin-bottom: 6px; }
+.wb-h2 { font-size: 16px; font-weight: 600; color: var(--foreground); }
+.wb-h3 { font-size: 14px; font-weight: 600; color: var(--foreground); }
+.wb-sub { color: var(--muted); font-size: 13px; }
+
+/* === FAQ — 列表形式（去卡片化），用 1、2、3 序号 === */
+.wb-faq-list { display: flex; flex-direction: column; }
+.wb-faq-item {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #f3f4f6;
+  overflow: hidden;
+}
+.wb-faq-item:first-child { border-top: 1px solid #f3f4f6; }
+.wb-faq-q {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 16px 8px 16px 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground);
+  cursor: pointer;
+  list-style: none;
+  gap: 14px;
+  transition: background 150ms;
+}
+.wb-faq-q:hover { background: #fafaf9; }
+.wb-faq-q::-webkit-details-marker { display: none; }
+.wb-faq-num {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.wb-faq-q-text { flex: 1; line-height: 1.5; }
+.wb-faq-arrow {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 14px;
+  transition: transform 200ms, color 150ms;
+}
+.wb-faq-item[open] .wb-faq-arrow { transform: rotate(180deg); color: var(--primary); }
+.wb-faq-a {
+  padding: 0 8px 18px 36px; /* 与序号右侧对齐：4 + 18 + 14 = 36 */
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+/* === 输入框 === */
+.wb-input {
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0 12px;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+  background: #fff;
+  transition: border 150ms;
+}
+.wb-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255, 122, 69, 0.12); }
+
+/* === 滚动条 === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+
+/* === 侧边栏 / 导航 === */
+.wb-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  color: var(--foreground);
+  transition: all 150ms;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.wb-nav-item:hover { background: var(--primary-light); color: var(--primary); }
+.wb-nav-item.is-active {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 500;
+}
+.wb-nav-item .wb-nav-icon { color: var(--muted); flex-shrink: 0; }
+.wb-nav-item.is-active .wb-nav-icon { color: var(--primary); }
+.wb-nav-item:hover .wb-nav-icon { color: var(--primary); }
+.wb-nav-children {
+  margin: 4px 0 6px 12px;
+  padding-left: 12px;
+  border-left: 1px dashed #f3d9c4;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.wb-nav-child {
+  width: 100%;
+  text-align: left;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  border-radius: 6px;
+  color: #999999;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: color 150ms;
+}
+.wb-nav-child:hover { color: var(--primary); }
+.wb-nav-child.is-active { color: var(--primary); font-weight: 500; background: transparent; }
