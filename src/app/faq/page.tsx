@@ -4,6 +4,9 @@ import { useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { faqItems } from '@/lib/data';
 
+// useSearchParams() 在 Next.js 16 静态预渲染时会报错, 强制走动态渲染
+export const dynamic = 'force-dynamic';
+
 const categories = ['全部', '计费', '模型', '充值', '使用', '技术', '安全'];
 
 function FAQContent() {
