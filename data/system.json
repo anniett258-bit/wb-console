@@ -1,0 +1,28 @@
+{
+  "users": {
+    "WB-1024": {
+      "id": "WB-1024",
+      "nickname": "AI开发者",
+      "avatar": "",
+      "balance": 8711,
+      "totalSpent": 43200,
+      "totalTokens": 85600000,
+      "createdAt": "2026-06-15T00:00:00.000Z"
+    }
+  },
+  "orders": [],
+  "redeemCodes": [
+    {
+      "code": "WELCOME-100-2026",
+      "points": 100,
+      "createdAt": "2026-06-15T00:00:00.000Z",
+      "source": "system"
+    },
+    {
+      "code": "SUMMER-500-NEW",
+      "points": 500,
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "source": "activity"
+    }
+  ]
+}

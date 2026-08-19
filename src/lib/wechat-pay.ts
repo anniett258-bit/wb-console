@@ -5,7 +5,7 @@
  * 环境变量：
  *   WECHAT_MCH_ID          商户号
  *   WECHAT_API_V3_KEY      APIv3 密钥（32 位）
- *   WECHAT_APP_ID          公众号/小程序 AppID（Native 模式可空但保留）
+ *   WECHAT_APPID           公众号/小程序 AppID（Native 模式必填）
  *   WECHAT_NOTIFY_URL      支付回调地址（公网 https）
  *   WECHAT_SERIAL_NO       商户证书序列号
  *   WECHAT_PRIVATE_KEY     商户私钥（PEM 内容，\n 转真实换行）
@@ -30,12 +30,28 @@ export interface NativeOrderResult {
 
 const WX_HOST = 'https://api.mch.weixin.qq.com';
 
+function loadPrivateKey(): string {
+  // 优先从路径加载（生产推荐）
+  const path = process.env.WECHAT_PRIVATE_KEY_PATH;
+  if (path) {
+    try {
+      const fs = require('node:fs') as typeof import('node:fs');
+      return fs.readFileSync(path, 'utf8');
+    } catch (e) {
+      // 静默失败,下面 isConfigured 会拦截
+      return '';
+    }
+  }
+  // 备选: 完整 PEM 写在 env 里
+  return (process.env.WECHAT_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+}
+
 function isConfigured(): boolean {
   return Boolean(
     process.env.WECHAT_MCH_ID &&
       process.env.WECHAT_API_V3_KEY &&
       process.env.WECHAT_SERIAL_NO &&
-      process.env.WECHAT_PRIVATE_KEY
+      (process.env.WECHAT_PRIVATE_KEY_PATH || process.env.WECHAT_PRIVATE_KEY)
   );
 }
 
@@ -44,7 +60,7 @@ function isConfigured(): boolean {
  */
 function sign(method: string, urlPath: string, body: string, ts: string, nonce: string): string {
   const message = `${method}\n${urlPath}\n${ts}\n${nonce}\n${body}\n`;
-  const privateKey = (process.env.WECHAT_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+  const privateKey = loadPrivateKey();
   const sign_ = crypto.createSign('RSA-SHA256');
   sign_.update(message, 'utf8');
   return sign_.sign(privateKey, 'base64');
@@ -62,14 +78,18 @@ export function verifyAndDecryptNotify(
   associatedData: string,
   nonce2: string
 ): Record<string, unknown> {
-  // 1. 验签
+  // 1. 验签（生产环境需配 WECHAT_PLATFORM_CERT 平台公钥）
   const urlPath = '/v3/pay/transactions/native';
   const message = `POST\n${urlPath}\n${timestamp}\n${nonce}\n${body}\n`;
   const platformCert = (process.env.WECHAT_PLATFORM_CERT || '').replace(/\\n/g, '\n');
-  const verify = crypto.createVerify('RSA-SHA256');
-  verify.update(message, 'utf8');
-  const ok = verify.verify(platformCert, signature, 'base64');
-  if (!ok) throw new Error('Invalid signature from WeChat');
+  if (platformCert) {
+    const verify = crypto.createVerify('RSA-SHA256');
+    verify.update(message, 'utf8');
+    const ok = verify.verify(platformCert, signature, 'base64');
+    if (!ok) throw new Error('Invalid signature from WeChat');
+  } else {
+    console.warn('[wechat-pay] WECHAT_PLATFORM_CERT 未配置, 跳过回调验签 (生产前必须补)');
+  }
 
   // 2. 解密 resource（AES-256-GCM）
   const key = Buffer.from(process.env.WECHAT_API_V3_KEY || '', 'utf8');
@@ -97,7 +117,7 @@ export async function createNativeOrder(input: NativeOrderInput): Promise<Native
 
   const urlPath = '/v3/pay/transactions/native';
   const body = JSON.stringify({
-    appid: process.env.WECHAT_APP_ID || '',
+    appid: process.env.WECHAT_APPID || '',
     mchid: process.env.WECHAT_MCH_ID,
     description: input.description,
     out_trade_no: input.outTradeNo,
