@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import QRCode from 'qrcode';
 import { addBalance } from '@/lib/redeem';
 import { useBalance } from '@/lib/useBalance';
 
@@ -44,6 +45,12 @@ export default function RechargePage() {
   const [useCustom, setUseCustom] = useState(false);
   const [payMethod, setPayMethod] = useState<'wechat' | 'alipay'>('wechat');
   const [showQR, setShowQR] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [orderId, setOrderId] = useState<string>('');
+  const [isMockMode, setIsMockMode] = useState<boolean>(false);
+  const [polling, setPolling] = useState<boolean>(false);
+  const [payError, setPayError] = useState<string>('');
+  const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [paid, setPaid] = useState<{ total: number; newBalance: number; name: string; price: number } | null>(null);
 
   const customNum = parseFloat(customAmount);
@@ -58,16 +65,98 @@ export default function RechargePage() {
     return { name: p.name, price: p.price, credits: p.baseCredits, bonus: p.bonus, total: p.baseCredits + p.bonus, isCustom: false };
   }, [useCustom, customValid, customNum, selected]);
 
-  const handlePay = () => {
+  const handlePay = async () => {
     if (useCustom && !customValid) return;
-    setShowQR(true);
+    setPayError('');
+    try {
+      const res = await fetch('/api/recharge/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planId: useCustom ? 'custom' : selected,
+          method: payMethod,
+          amount: useCustom ? customNum : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '创建订单失败');
+
+      setOrderId(data.orderId);
+      setIsMockMode(!!data.mock);
+
+      // 渲染二维码
+      const url = await QRCode.toDataURL(data.codeUrl, {
+        width: 200,
+        margin: 1,
+        color: { dark: '#262626', light: '#ffffff' },
+      });
+      setQrDataUrl(url);
+      setShowQR(true);
+
+      // 启动轮询
+      startPolling(data.orderId);
+    } catch (e) {
+      setPayError(e instanceof Error ? e.message : '创建订单失败');
+    }
   };
 
-  const handleConfirmPaid = () => {
-    // 真实到账：写余额 + 触发全局 balance 事件
-    const newBalance = addBalance(summary.total);
-    setPaid({ total: summary.total, newBalance, name: summary.name, price: summary.price });
-    setShowQR(false);
+  const startPolling = (oid: string) => {
+    if (pollTimer.current) clearInterval(pollTimer.current);
+    setPolling(true);
+    pollTimer.current = setInterval(async () => {
+      try {
+        const r = await fetch(`/api/recharge/query?orderId=${oid}`);
+        const d = await r.json();
+        if (d.status === 'paid') {
+          stopPolling();
+          const newBalance = addBalance(d.points);
+          setPaid({ total: d.points, newBalance, name: summary.name, price: summary.price });
+          setShowQR(false);
+        } else if (d.status === 'closed') {
+          stopPolling();
+          setPayError('订单已过期，请重新下单');
+          setShowQR(false);
+        }
+      } catch {
+        // 静默重试
+      }
+    }, 2500);
+  };
+
+  const stopPolling = () => {
+    setPolling(false);
+    if (pollTimer.current) {
+      clearInterval(pollTimer.current);
+      pollTimer.current = null;
+    }
+  };
+
+  // 关闭弹窗时停止轮询
+  useEffect(() => {
+    if (!showQR) stopPolling();
+    return () => stopPolling();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showQR]);
+
+  // 沙箱模式：手动触发 mock-pay
+  const handleMockPay = async () => {
+    if (!orderId) return;
+    try {
+      const r = await fetch('/api/recharge/mock-pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        stopPolling();
+        const newBalance = addBalance(d.points);
+        setPaid({ total: d.points, newBalance, name: summary.name, price: summary.price });
+        setShowQR(false);
+      }
+    } catch (e) {
+      setPayError(e instanceof Error ? e.message : 'mock 支付失败');
+    }
   };
 
   return (
@@ -270,6 +359,13 @@ export default function RechargePage() {
         <div>· 遇到问题可前往 <a href="/faq" className="text-[var(--primary)] hover:underline">常见问题</a> 查看更多</div>
       </div>
 
+      {/* 错误提示 */}
+      {payError && (
+        <div className="px-4 py-2.5 rounded-md bg-red-50 border border-red-200 text-sm text-red-600">
+          {payError}
+        </div>
+      )}
+
       {/* 支付二维码弹窗 */}
       {showQR && (
         <div
@@ -286,13 +382,25 @@ export default function RechargePage() {
             <div className="text-xs text-[var(--muted)] mb-4">
               ¥{summary.price.toFixed(2)} · {formatNum(summary.total)} 积分
             </div>
-            <div className="w-48 h-48 mx-auto bg-[var(--primary-light)] border-2 border-[var(--primary-lighter)] rounded-lg flex items-center justify-center text-[var(--muted)] text-xs">
-              {payMethod === 'wechat' ? '微信支付二维码' : '支付宝二维码'}
-              <br />
-              （Demo 占位）
-            </div>
-            <div className="mt-4 text-xs text-[var(--muted)]">
-              请使用{payMethod === 'wechat' ? '微信' : '支付宝'}扫码完成支付
+            {qrDataUrl ? (
+              <img
+                src={qrDataUrl}
+                alt="支付二维码"
+                className="w-48 h-48 mx-auto rounded-lg border border-[var(--primary-lighter)]"
+              />
+            ) : (
+              <div className="w-48 h-48 mx-auto bg-gray-100 rounded-lg flex items-center justify-center text-xs text-[var(--muted)]">
+                二维码生成中...
+              </div>
+            )}
+            {isMockMode && (
+              <div className="mt-3 px-2 py-1.5 rounded-md bg-amber-50 border border-amber-200 text-[10px] text-amber-700">
+                ⚙️ 沙箱模式（未配置真实微信支付）
+              </div>
+            )}
+            <div className="mt-3 text-xs text-[var(--muted)] flex items-center justify-center gap-1.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
+              {polling ? '等待支付确认...' : '请使用微信/支付宝扫码'}
             </div>
             <div className="mt-4 flex gap-2">
               <button
@@ -301,12 +409,26 @@ export default function RechargePage() {
               >
                 取消
               </button>
-              <button
-                onClick={handleConfirmPaid}
-                className="flex-1 py-2 bg-[var(--primary)] text-white rounded-md hover:bg-[var(--primary-dark)] text-sm"
-              >
-                已完成支付
-              </button>
+              {isMockMode ? (
+                <button
+                  onClick={handleMockPay}
+                  className="flex-1 py-2 bg-[var(--primary)] text-white rounded-md hover:bg-[var(--primary-dark)] text-sm"
+                >
+                  模拟支付成功
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    stopPolling();
+                    setShowQR(false);
+                    setPaid({ total: summary.total, newBalance: balance + summary.total, name: summary.name, price: summary.price });
+                    addBalance(summary.total);
+                  }}
+                  className="flex-1 py-2 bg-[var(--primary)] text-white rounded-md hover:bg-[var(--primary-dark)] text-sm"
+                >
+                  已完成支付
+                </button>
+              )}
             </div>
           </div>
         </div>

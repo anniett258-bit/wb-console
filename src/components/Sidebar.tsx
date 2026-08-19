@@ -83,6 +83,7 @@ type NavItem = {
   icon: React.FC;
   path?: string;
   children?: SubItem[];
+  action?: 'open-service';
 };
 
 const navConfig: NavItem[] = [
