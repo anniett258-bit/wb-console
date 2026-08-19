@@ -4,9 +4,6 @@ import { Suspense, useMemo, useState, useCallback } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { rechargeRecords, redeemRecords, usageRecords, methodNames, lineNames } from '@/lib/data';
 
-// useSearchParams() 在 Next.js 16 静态预渲染时会报错, 强制走动态渲染
-export const dynamic = 'force-dynamic';
-
 const tabs = [
   { key: 'recharge', label: '充值记录' },
   { key: 'redeem', label: '兑换记录' },

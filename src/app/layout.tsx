@@ -3,6 +3,10 @@ import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 
+// Sidebar 使用 useSearchParams(), 整个项目强制动态渲染
+// 否则 build 时 /_not-found / 各 page 预渲染会失败
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "阿彤木很酷 · 积分服务控制台",
   description: "阿彤木很酷积分服务控制台 — 一站式模型调用、余额管理、API配置",
