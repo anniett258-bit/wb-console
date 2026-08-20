@@ -212,7 +212,7 @@ function RedeemContent() {
         <div className="mt-4 pt-4 border-t border-gray-100 text-xs text-[var(--muted)] space-y-1">
           <div>· 兑换码不区分大小写，粘贴时自动转大写</div>
           <div>· 每个兑换码仅可使用一次，激活后立即失效</div>
-          <div>· 兑换码来源：公众号「阿彤木很酷」活动文章 / 客服发放 / 节日福利</div>
+          <div>· 兑换码来源：公众号「WB模型自购」活动文章 / 客服发放 / 节日福利</div>
         </div>
       </div>
 
@@ -224,7 +224,7 @@ function RedeemContent() {
             <div className="w-7 h-7 rounded-full bg-[var(--primary-light)] text-[var(--primary)] text-sm font-semibold flex items-center justify-center shrink-0">1</div>
             <div>
               <div className="text-sm font-medium text-[var(--foreground)]">关注公众号</div>
-              <div className="text-xs text-[var(--muted)] mt-0.5">关注「阿彤木很酷」公众号</div>
+              <div className="text-xs text-[var(--muted)] mt-0.5">关注「WB模型自购」公众号</div>
             </div>
           </div>
           <div className="flex gap-3">

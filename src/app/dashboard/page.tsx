@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { currentUser, models, usageRecords } from '@/lib/data';
 import { useBalance } from '@/lib/useBalance';
+import VideoTutorial from '@/components/VideoTutorial';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -21,10 +22,13 @@ export default function DashboardPage() {
 
       {/* 数据卡 */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="wb-card">
-          <div className="text-xs text-[var(--muted)]">积分余额</div>
-          <div className="text-2xl font-bold text-[var(--primary)] mt-1">{balance.toLocaleString()}</div>
-          <button onClick={() => router.push('/recharge')} className="mt-2 text-xs text-[var(--primary)] hover:underline">立即充值 →</button>
+        <div
+          className="rounded-[10px] p-5 text-white relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #ffd9b8 0%, #ffa153 100%)' }}
+        >
+          <div className="text-xs opacity-90">积分余额</div>
+          <div className="text-2xl font-bold mt-1">{balance.toLocaleString()}</div>
+          <button onClick={() => router.push('/recharge')} className="mt-2 text-xs font-medium hover:underline">立即充值 →</button>
         </div>
         <div className="wb-card">
           <div className="text-xs text-[var(--muted)]">今日消耗</div>
@@ -44,12 +48,12 @@ export default function DashboardPage() {
       </div>
 
       {/* 余额预警 */}
-      {balance < 10000 && (
+      {balance < 1000 && (
         <div className="border border-amber-200 bg-amber-50 rounded-lg p-4 flex items-start gap-3">
           <div className="w-5 h-5 rounded-full bg-amber-400 text-white flex items-center justify-center text-xs flex-shrink-0 mt-0.5">!</div>
           <div className="flex-1">
             <div className="text-sm font-medium text-amber-900">积分余额不足</div>
-            <div className="text-xs text-amber-700 mt-0.5">当前余额 {balance.toLocaleString()}，低于预警阈值 10,000。建议及时充值，避免影响正常使用。</div>
+            <div className="text-xs text-amber-700 mt-0.5">当前余额 {balance.toLocaleString()}，低于预警阈值 1,000。建议及时充值，避免影响正常使用。</div>
           </div>
           <button onClick={() => router.push('/recharge')} className="wb-btn wb-btn-primary !h-8 text-xs">立即充值</button>
         </div>
@@ -67,7 +71,7 @@ export default function DashboardPage() {
         </button>
         <button onClick={() => router.push('/redeem')} className="wb-card text-left hover:border-[var(--primary)] transition-colors group">
           <div className="text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--primary)]">兑换码充值 →</div>
-          <div className="text-xs text-[var(--muted)] mt-1">公众号「阿彤木很酷」活动期间发放兑换码</div>
+          <div className="text-xs text-[var(--muted)] mt-1">公众号「WB模型自购」活动期间发放兑换码</div>
         </button>
       </div>
 
@@ -102,6 +106,9 @@ export default function DashboardPage() {
           </table>
         </div>
       </div>
+
+      {/* 配置教程 — 仅此项新增 */}
+      <VideoTutorial />
     </div>
   );
 }

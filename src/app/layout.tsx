@@ -8,8 +8,8 @@ import TopBar from "@/components/TopBar";
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: "阿彤木很酷 · 积分服务控制台",
-  description: "阿彤木很酷积分服务控制台 — 一站式模型调用、余额管理、API配置",
+  title: "WB模型自购 · 积分服务控制台",
+  description: "WB模型自购积分服务控制台 — 一站式模型调用、余额管理、API配置",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

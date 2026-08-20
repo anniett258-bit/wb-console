@@ -132,7 +132,7 @@ export const faqItems: FAQItem[] = [
   { id: 'faq4', question: '可以用在哪些客户端？', answer: '任何兼容 OpenAI 接口的客户端（WorkBuddy、CodeBuddy、ChatBox、NextChat 等），填入同样的 Base URL 和 API Key 即可。', category: '使用' },
   { id: 'faq5', question: '一键配置脚本失败怎么办？', answer: '请改用左侧「WorkBuddy → 手动配置」，在 WorkBuddy 设置里手动填写 Base URL、API Key 和模型名。', category: '技术' },
   { id: 'faq6', question: 'API Key 在哪里查看？', answer: '进入「模型配置」页面即可查看、复制或重置你的 API Key。建议定期轮换，不要在前端代码中硬编码。', category: '使用' },
-  { id: 'faq7', question: '如何获得更多积分？', answer: '可通过微信支付自助充值，或使用兑换码（公众号「阿彤木很酷」活动期间发放）。', category: '充值' },
+  { id: 'faq7', question: '如何获得更多积分？', answer: '可通过微信支付自助充值，或使用兑换码（公众号「WB模型自购」活动期间发放）。', category: '充值' },
   { id: 'faq8', question: '余额不足会怎样？', answer: 'API 请求会返回 402 错误并停止响应。建议在「控制台」开启余额预警，低于阈值时自动提醒。', category: '计费' },
   { id: 'faq9', question: '支持团队多人协作吗？', answer: '当前为单用户版本。企业版/团队版正在规划中，支持多成员共享额度、成员用量统计。', category: '使用' },
   { id: 'faq10', question: '数据是否安全？', answer: '全链路 HTTPS 加密传输，API Key 加盐哈希存储；不保留对话内容，仅保留 30 天调用日志用于计费。', category: '安全' },

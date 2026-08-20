@@ -13,7 +13,7 @@ export default function TopBar() {
   return (
     <>
       <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-100 z-20 flex items-center px-4">
-        <div className="text-base font-semibold text-[var(--foreground)]">阿彤木很酷</div>
+        <div className="text-base font-semibold text-[var(--foreground)]">WB模型自购</div>
         <div className="ml-auto" />
       </header>
 
@@ -24,7 +24,7 @@ export default function TopBar() {
         >
           <span className="w-2 h-2 rounded-full bg-[var(--primary)] group-hover:scale-125 transition-transform" />
           <span className="text-sm text-[var(--foreground)]">关注公众号</span>
-          <span className="text-xs text-[var(--muted)]">阿彤木很酷</span>
+          <span className="text-xs text-[var(--muted)]">WB模型自购</span>
         </button>
       </div>
 
@@ -42,7 +42,7 @@ export default function TopBar() {
             <div className="mt-4 aspect-square bg-white rounded-lg overflow-hidden border border-gray-100 p-2">
               <img src="/images/wx-public-qr.jpg" alt="公众号二维码" className="w-full h-full object-contain" />
             </div>
-            <div className="mt-3 text-base font-medium text-[var(--foreground)]">阿彤木很酷</div>
+            <div className="mt-3 text-base font-medium text-[var(--foreground)]">WB模型自购</div>
             <div className="text-xs text-[var(--muted)] mt-0.5">微信扫码即可关注</div>
             <button
               onClick={() => setShowQR(false)}

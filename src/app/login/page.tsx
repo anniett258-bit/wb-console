@@ -45,7 +45,7 @@ export default function LoginPage() {
           >
             WB
           </div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">阿彤木很酷</h1>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">WB模型自购</h1>
           <p className="text-sm text-[var(--muted)] mt-2">积分服务控制台</p>
         </div>
 
@@ -140,7 +140,7 @@ export default function LoginPage() {
         <div className="aspect-square bg-white rounded-lg overflow-hidden border border-gray-100">
           <img src="/images/wx-public-qr.jpg" alt="公众号二维码" className="w-full h-full object-contain" />
         </div>
-        <div className="text-center mt-2 text-sm font-medium text-[var(--foreground)]">阿彤木很酷</div>
+        <div className="text-center mt-2 text-sm font-medium text-[var(--foreground)]">WB模型自购</div>
         <div className="text-center text-[10px] text-[var(--muted)] mt-0.5">活动码 / 兑换码首发</div>
       </div>
     </div>

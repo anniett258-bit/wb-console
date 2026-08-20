@@ -14,7 +14,8 @@ export interface UserData {
 }
 
 export type OrderStatus = 'pending' | 'paid' | 'closed' | 'refunded';
-export type OrderMethod = 'wechat' | 'alipay' | 'admin';
+export type OrderMethod = 'wechat' | 'h5' | 'alipay' | 'admin';
+export type PayMode = 'native' | 'h5' | 'jsapi' | 'alipay';
 
 export interface Order {
   id: string;
@@ -23,6 +24,7 @@ export interface Order {
   amount: number;
   points: number;
   method: OrderMethod;
+  payMode?: PayMode;
   status: OrderStatus;
   codeUrl?: string;
   transactionId?: string;

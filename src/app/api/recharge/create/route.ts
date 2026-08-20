@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json().catch(() => ({}))) as {
       planId?: string;
-      method?: 'wechat' | 'alipay';
+      method?: 'wechat' | 'h5' | 'alipay';
       userId?: string;
     };
 
@@ -26,8 +26,8 @@ export async function POST(req: NextRequest) {
     if (!plan) return NextResponse.json({ error: 'Invalid planId' }, { status: 400 });
 
     const method = body.method || 'wechat';
-    if (method !== 'wechat' && method !== 'alipay') {
-      return NextResponse.json({ error: 'method only support wechat/alipay' }, { status: 400 });
+    if (!['wechat', 'h5', 'alipay'].includes(method)) {
+      return NextResponse.json({ error: 'method only support wechat/h5/alipay' }, { status: 400 });
     }
 
     const userId = body.userId || 'WB-1024';
@@ -37,18 +37,37 @@ export async function POST(req: NextRequest) {
     const points = calcPoints(plan);
     const amountFen = plan.amount * 100;
 
-    // 支付宝本期先返回 placeholder（等下个迭代接入）
+    // 微信：method=wechat 走 native (PC扫码), method=h5 走 H5 (手机浏览器)
+    // 支付宝本期先返回 placeholder
     let codeUrl = '';
     let mock = false;
+    let payMode: 'native' | 'h5' | 'jsapi' | 'alipay' = 'native';
     if (method === 'wechat') {
-      const r = await createNativeOrder({
-        outTradeNo,
-        description: `wb-console 充值 ${plan.amount}元`,
-        amountFen,
-        attach: `${userId}|${points}`,
-      });
+      const r = await createNativeOrder(
+        {
+          outTradeNo,
+          description: `wb-console 充值 ${plan.amount}元`,
+          amountFen,
+          attach: `${userId}|${points}`,
+        },
+        'native'
+      );
       codeUrl = r.codeUrl;
       mock = r.mock || false;
+      payMode = 'native';
+    } else if (method === 'h5') {
+      const r = await createNativeOrder(
+        {
+          outTradeNo,
+          description: `wb-console 充值 ${plan.amount}元 (H5)`,
+          amountFen,
+          attach: `${userId}|${points}|h5`,
+        },
+        'h5'
+      );
+      codeUrl = r.codeUrl;
+      mock = r.mock || false;
+      payMode = 'h5';
     } else {
       codeUrl = `https://qr.alipay.com/mock?outTradeNo=${outTradeNo}`;
       mock = true;
@@ -61,6 +80,7 @@ export async function POST(req: NextRequest) {
       amount: plan.amount,
       points,
       method,
+      payMode,
       status: 'pending',
       codeUrl,
     });
@@ -69,6 +89,7 @@ export async function POST(req: NextRequest) {
       orderId: order.id,
       outTradeNo: order.outTradeNo,
       codeUrl: order.codeUrl,
+      payMode,
       mock,
       amount: plan.amount,
       points,

@@ -102,11 +102,17 @@ export function verifyAndDecryptNotify(
 }
 
 /**
- * 创建 Native 订单
- * 真实模式：调 https://api.mch.weixin.qq.com/v3/pay/transactions/native
+ * 创建 Native / H5 / JSAPI 订单
+ * - mode=native: PC 扫码, urlPath=/v3/pay/transactions/native
+ * - mode=h5: 手机浏览器调起微信, urlPath=/v3/pay/transactions/h5
+ * - mode=jsapi: 公众号内 H5 调起, urlPath=/v3/pay/transactions/jsapi (需 openid)
  * 沙箱模式：返回 weixin://wxpay/bizpayurl?pr=mockXXXXXX
  */
-export async function createNativeOrder(input: NativeOrderInput): Promise<NativeOrderResult> {
+export async function createNativeOrder(
+  input: NativeOrderInput,
+  mode: 'native' | 'h5' | 'jsapi' = 'native',
+  openid?: string
+): Promise<NativeOrderResult> {
   if (!isConfigured()) {
     // 沙箱模式：直接返回 mock 二维码 URL
     return {
@@ -115,8 +121,10 @@ export async function createNativeOrder(input: NativeOrderInput): Promise<Native
     };
   }
 
-  const urlPath = '/v3/pay/transactions/native';
-  const body = JSON.stringify({
+  const urlPath =
+    mode === 'h5' ? '/v3/pay/transactions/h5' : mode === 'jsapi' ? '/v3/pay/transactions/jsapi' : '/v3/pay/transactions/native';
+
+  const bodyObj: Record<string, unknown> = {
     appid: process.env.WECHAT_APPID || '',
     mchid: process.env.WECHAT_MCH_ID,
     description: input.description,
@@ -128,7 +136,27 @@ export async function createNativeOrder(input: NativeOrderInput): Promise<Native
       total: input.amountFen,
       currency: 'CNY',
     },
-  });
+  };
+
+  // H5 必填 scene_info
+  if (mode === 'h5') {
+    bodyObj.scene_info = {
+      payer_client_ip: '127.0.0.1',
+      h5_info: {
+        type: 'Wap',
+        app_url: process.env.SITE_URL || 'https://workerbuddypay.top',
+        app_name: 'WorkBuddy 积分服务控制台',
+      },
+    };
+  }
+
+  // JSAPI 必填 payer.openid
+  if (mode === 'jsapi') {
+    if (!openid) throw new Error('jsapi mode requires openid');
+    bodyObj.payer = { openid };
+  }
+
+  const body = JSON.stringify(bodyObj);
 
   const ts = Math.floor(Date.now() / 1000).toString();
   const nonce = crypto.randomBytes(16).toString('hex');
@@ -151,9 +179,11 @@ export async function createNativeOrder(input: NativeOrderInput): Promise<Native
     const text = await res.text();
     throw new Error(`WeChat API ${res.status}: ${text}`);
   }
-  const json = (await res.json()) as { code_url?: string; prepay_id?: string };
-  if (!json.code_url) throw new Error('WeChat response missing code_url');
-  return { codeUrl: json.code_url, prepayId: json.prepay_id };
+  const json = (await res.json()) as { code_url?: string; h5_url?: string; prepay_id?: string };
+  // Native 返回 code_url, H5 返回 h5_url
+  const url = json.code_url || json.h5_url;
+  if (!url) throw new Error('WeChat response missing code_url/h5_url');
+  return { codeUrl: url, prepayId: json.prepay_id };
 }
 
 /**
